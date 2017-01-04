@@ -21,37 +21,34 @@ namespace Elevator {
         internal List<CallRequest> UnservicedFloors = new List<CallRequest>();
 
         //Find an elevator to service a requested floor
-		internal void RequestElevator(CallRequest request) {
+        internal void RequestElevator(CallRequest request)
+        {
             bool carFound = false;
-			foreach (var car in Bank.Cars) {
-				if (car.NextStop == null && car.Shaft.CanAccessFloor(request.Floor)) {
-                    Logger.Output("Car " + car.Designation + " requested to service floor " + request.Floor);
 
-					car.NextStop = car.Shaft[request.Floor];
-
-                    carFound = true;
-
-					break;
-				}
-			}
-
-            if (carFound == false)
+            lock (UnservicedFloors)
             {
-                Logger.Output("Request to floor " + request.Floor + " cannot be serviced immediately");
+                foreach (var car in Bank.Cars)
+                {
+                    if (car.NextStop == null && car.Shaft.CanAccessFloor(request.Floor))
+                    {
+                        Logger.Output("Car " + car.Designation + " requested to service floor " + request.Floor);
 
-                UnservicedFloors.Add(request);
-                //var distances = new Dictionary<Car, double>();
+                        car.NextStop = car.Shaft[request.Floor];
 
-                //foreach (var car in Bank.Cars)
-                //{
-                //    var distance = Math.Abs(car.Destination.Floor - requestingFloor);
+                        carFound = true;
 
-                //    distances.Add(car, distance);
-                //}
+                        break;
+                    }
+                }
 
-                //var nearestCar = distances.Min().Key;
+                if (carFound == false)
+                {
+                    Logger.Output("Request to floor " + request.Floor + " cannot be serviced immediately");
+
+                    UnservicedFloors.Add(request);
+                }
             }
-		}
+        }
 
         //See if a call button was pressed that the given elevator can service en route
         internal void CheckForNewStop(Car movingCar)
