@@ -27,6 +27,13 @@ namespace Elevator {
 
             lock (UnservicedFloors)
             {
+                if (UnservicedFloors.Contains(request))
+                {
+                    Logger.Output("Duplicate request received for floor " + request.Floor);
+
+                    return;
+                }
+
                 foreach (var car in Bank.Cars)
                 {
                     if (car.NextStop == null && car.Shaft.CanAccessFloor(request.Floor))
